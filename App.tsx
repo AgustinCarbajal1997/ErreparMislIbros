@@ -1,41 +1,25 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import {SafeAreaView, StyleSheet, useColorScheme, View} from 'react-native';
-import {WebView} from 'react-native-webview';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import DrawerNavigation from './src/navigation/navigation';
+import AuthStack from './src/navigation/stacks/AuthStack';
+import {AuthProvider, useAuth} from './src/context/AuthContext';
 
-function App(): React.JSX.Element {
-  const pdfUrl = encodeURIComponent(
-    'https://portalerrepar.errepar.com/resources/images/appseparatas/236.pdf',
-  );
-  const googleViewerUrl = `https://docs.google.com/gview?embedded=true&url=${pdfUrl}`;
+const AppNavigator = () => {
+  const {isAuthenticated} = useAuth();
 
   return (
-    <View style={styles.container}>
-      <WebView
-        source={{uri: googleViewerUrl}}
-        style={{flex: 1}}
-        originWhitelist={['*']}
-        javaScriptEnabled
-        domStorageEnabled
-        startInLoadingState
-      />
-    </View>
+    <NavigationContainer>
+      {isAuthenticated ? <DrawerNavigation /> : <AuthStack />}
+    </NavigationContainer>
+  );
+};
+
+function App(): JSX.Element {
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    height: 500,
-  },
-  webview: {
-    flex: 1,
-  },
-});
 export default App;
