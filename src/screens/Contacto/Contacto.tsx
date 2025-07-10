@@ -1,6 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import React from 'react';
+import Zocial from 'react-native-vector-icons/Zocial';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Contacto = ({}): JSX.Element => {
   return (
@@ -17,10 +19,30 @@ const Contacto = ({}): JSX.Element => {
         }}
       />
       <View style={styles.containerContact}>
-        <Text style={styles.subtitle}>Viamonte 1484 - 1055 CABA</Text>
-        <Text style={styles.subtitle}>4370-2002</Text>
-        <Text style={styles.subtitle}>clientes@errepar.com</Text>
-        <Text style={styles.subtitle}>11-59366406</Text>
+        <View style={styles.containerInfo}>
+          <View>
+            <Ionicons name="location-sharp" size={25} />
+          </View>
+          <Text style={styles.subtitle}>Viamonte 1484 - 1055 CABA</Text>
+        </View>
+        <View style={styles.containerInfo}>
+          <View>
+            <Ionicons name="phone-portrait-outline" size={25} />
+          </View>
+          <Text style={styles.subtitle}>4370-2002</Text>
+        </View>
+        <View style={styles.containerInfo}>
+          <View>
+            <Ionicons name="mail-sharp" size={25} />
+          </View>
+          <Text style={styles.subtitle}>clientes@errepar.com</Text>
+        </View>
+        <View style={styles.containerInfo}>
+          <View>
+            <Ionicons name="logo-whatsapp" size={25} />
+          </View>
+          <Text style={styles.subtitle}>11-59366406</Text>
+        </View>
       </View>
       <View
         style={{
@@ -32,6 +54,20 @@ const Contacto = ({}): JSX.Element => {
       />
       <View style={styles.containerContact}>
         <Text style={styles.subtitle}>También encontranos en:</Text>
+        <View style={styles.containerContactRedes}>
+          <View>
+            <Zocial name="facebook" size={25} />
+          </View>
+          <View>
+            <Zocial name="twitter" size={25} />
+          </View>
+          <View>
+            <Zocial name="linkedin" size={25} />
+          </View>
+          <View>
+            <Ionicons name="logo-instagram" size={25} />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -71,5 +107,19 @@ const styles = StyleSheet.create({
   },
   containerContact: {
     width: '100%',
+  },
+  containerInfo: {
+    display: 'flex',
+    gap: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  containerContactRedes: {
+    marginTop: 16,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    flexDirection: 'row',
   },
 });
