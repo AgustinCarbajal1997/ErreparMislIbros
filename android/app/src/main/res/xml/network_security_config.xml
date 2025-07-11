@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">api.dev.errepar.com</domain>
+        <domain includeSubdomains="true">sse.dev.errepar.com</domain>
+        <domain includeSubdomains="true">dev.errepar.com</domain>
+        <domain includeSubdomains="true">qa.miestudio.ar</domain>
+        <domain includeSubdomains="true">https://accounts.errepar.com/</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <trust-anchors>
+            <certificates src="@raw/cert1"/>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
