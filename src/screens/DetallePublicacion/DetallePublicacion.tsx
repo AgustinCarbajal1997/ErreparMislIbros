@@ -8,184 +8,213 @@ import {
   Image,
   ScrollView,
   Modal,
-  SafeAreaView,
   Dimensions,
+  FlatList,
+  ActivityIndicator,
+  Linking,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {Fragment, useEffect, useRef, useState} from 'react';
 import WebView from 'react-native-webview';
+import {useRoute} from '@react-navigation/native';
+import BASE_URL from '../../utils/url';
+import {useAuth} from '../../context/AuthContext';
+import SeparataCard from '../../components/SeparataCard';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {generatePreviewUrl} from '../../utils/generateUrl';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const DetallePublicacion = ({navigation}): JSX.Element => {
+  const {authData} = useAuth();
+  const route = useRoute();
+  const {publicationId, title, ImageUrl} = route.params as {
+    publicationId: number;
+    title: string;
+    ImageUrl: string;
+  };
   const [visible, setVisible] = useState(false);
+  const [modalUrl, setModalUrl] = useState('');
+  const [separatas, setSeparatas] = useState([]);
+  const [filterSeparatas, setFilterSeparatas] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const webviewRef = useRef(null);
+  const [timer, setTimer] = useState(false);
 
-  const pdfUrl = encodeURIComponent(
-    'https://portalerrepar.errepar.com/resources/images/appseparatas/236.pdf',
-  );
-  const googleViewerUrl = `https://docs.google.com/gview?embedded=true&url=${pdfUrl}`;
+  const handleLoadEnd = () => {
+    webviewRef.current.injectJavaScript(`
+      (function() {
+        if (document.body && document.body.innerHTML.trim() === "") {
+          window.ReactNativeWebView.postMessage("blank");
+        }
+      })();
+    `);
+  };
+
+  const handleMessage = event => {
+    if (event.nativeEvent.data === 'blank') {
+      console.log('WebView blank → reload');
+      setTimer(true);
+      setTimeout(() => {
+        setTimer(false);
+      }, 200);
+    }
+  };
+
+  const getSeparatas = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${BASE_URL}/Book/getBookDetails?publicationId=${publicationId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authData?.token,
+          },
+        },
+      );
+      const data = await response.json();
+      const filterData = data?.filter(
+        item => item?.fileUrl !== null || item?.videoUrl !== null,
+      );
+      setSeparatas(filterData);
+      setFilterSeparatas(filterData);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
+  const onHandleFilterSeparatas = () => {
+    const filteredPublicaciones = separatas.filter(item =>
+      item.fileTitle?.toLowerCase().includes(searchText.toLowerCase()),
+    );
+    setFilterSeparatas(filteredPublicaciones);
+  };
+
+  useEffect(() => {
+    onHandleFilterSeparatas();
+  }, [searchText]);
+
+  useEffect(() => {
+    getSeparatas();
+  }, []);
+
+  const navigationGoBack = () => {
+    navigation.goBack();
+  };
+
+  const onOpenModalUrl = item => {
+    if (item?.fileUrl?.includes('.pdf')) {
+      const fileData = generatePreviewUrl(item);
+
+      setModalUrl(fileData?.URL);
+      setVisible(true);
+      return;
+    }
+    if (item?.fileUrl?.includes('.xlsm') || item?.fileUrl?.includes('.doc')) {
+      console.log('debe descargar');
+      return;
+    }
+    if (item?.videoUrl !== null) {
+      Linking.openURL(item?.videoUrl);
+      return;
+    }
+  };
+
   return (
     <View style={styles.screenContainer}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.containerTitle}>
-          <Text style={styles.title}>
-            Guía práctica para el liquidador de sueldos
-          </Text>
-          <Image
-            source={{
-              uri: 'https://tiendaonline.errepar.com/3121-large_default/guia-practica-para-el-liquidador-de-sueldos.jpg',
-            }}
-            style={styles.image}
+      <View style={styles.containerIcon}>
+        <TouchableOpacity activeOpacity={0.8} onPress={navigationGoBack}>
+          <Ionicons
+            name="arrow-back-circle-outline"
+            size={40}
+            color="#00a88f"
           />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.containerTitle}>
+        <Text style={styles.title}>{title}</Text>
+        <Image
+          source={{
+            uri: ImageUrl,
+          }}
+          style={styles.image}
+        />
+      </View>
+      {loading === false && separatas?.length === 0 && (
+        <View>
+          <Text style={styles.textNoHaySeparatas}>
+            ¡Tu libro está actualizado! A la fecha, no hay cambios normativos.
+          </Text>
         </View>
+      )}
+      {loading === false && separatas?.length > 0 && (
         <View style={styles.containerSections}>
-          <TextInput style={styles.inputText} placeholder="Buscar por título" />
+          <TextInput
+            style={styles.inputText}
+            placeholder="Buscar por título"
+            value={searchText}
+            onChangeText={text => setSearchText(text)}
+          />
         </View>
+      )}
 
-        <View style={styles.cardContainer}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '500',
-              color: '#000000',
-            }}>
-            Contrato de trabajo. Empleadores. Obligación de contar con espacios
-            de cuidados para menores de 3 años
-          </Text>
-          <View
-            style={{
-              marginVertical: 10,
-              width: '100%',
-              height: 1,
-              backgroundColor: '#00000020',
-            }}
-          />
-          <View>
-            <Text
-              style={{
-                fontSize: 15,
-                color: '#000000',
-              }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  color: '#000000',
-                  fontWeight: '500',
-                }}>
-                Fecha:
-              </Text>{' '}
-              12/04/22
-            </Text>
-            <View style={{paddingVertical: 8}} />
-            <TouchableOpacity onPress={() => setVisible(true)}>
-              <View style={styles.buttonContainer}>
-                <Text style={styles.buttonText}>Ver Archivo PDF</Text>
-              </View>
+      {loading ? (
+        <ActivityIndicator size={25} color={'#00a88f'} />
+      ) : (
+        <>
+          {separatas?.length > 0 && filterSeparatas?.length > 0 && (
+            <>
+              <ScrollView>
+                {filterSeparatas?.map(item => (
+                  <Fragment key={item.id.toString()}>
+                    <SeparataCard
+                      separata={item}
+                      navigation={navigation}
+                      onOpenModalUrl={() => onOpenModalUrl(item)}
+                    />
+                    <View style={{height: 16}} />
+                  </Fragment>
+                ))}
+              </ScrollView>
+            </>
+          )}
+          {separatas?.length > 0 && filterSeparatas?.length === 0 && (
+            <>
+              <Text style={{textAlign: 'center', marginTop: 20, color: '#888'}}>
+                No hay publicaciones
+              </Text>
+            </>
+          )}
+        </>
+      )}
+      {visible && (
+        <Modal visible={visible} animationType="slide">
+          <SafeAreaView style={styles.modalContainer}>
+            <TouchableOpacity
+              onPress={() => setVisible(false)}
+              style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-        <View style={{paddingVertical: 8}} />
-        <View style={styles.cardContainer}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '500',
-              color: '#000000',
-            }}>
-            Contrato de trabajo. Empleadores. Obligación de contar con espacios
-            de cuidados para menores de 3 años
-          </Text>
-          <View
-            style={{
-              marginVertical: 10,
-              width: '100%',
-              height: 1,
-              backgroundColor: '#00000020',
-            }}
-          />
-          <View>
-            <Text
-              style={{
-                fontSize: 15,
-                color: '#000000',
-              }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  color: '#000000',
-                  fontWeight: '500',
-                }}>
-                Fecha:
-              </Text>{' '}
-              12/04/22
-            </Text>
-            <View style={{paddingVertical: 8}} />
-            <TouchableOpacity>
-              <View style={styles.buttonContainer}>
-                <Text style={styles.buttonText}>Ver Archivo PDF</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={{paddingVertical: 8}} />
-        <View style={styles.cardContainer}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '500',
-              color: '#000000',
-            }}>
-            Contrato de trabajo. Empleadores. Obligación de contar con espacios
-            de cuidados para menores de 3 años
-          </Text>
-          <View
-            style={{
-              marginVertical: 10,
-              width: '100%',
-              height: 1,
-              backgroundColor: '#00000020',
-            }}
-          />
-          <View>
-            <Text
-              style={{
-                fontSize: 15,
-                color: '#000000',
-              }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  color: '#000000',
-                  fontWeight: '500',
-                }}>
-                Fecha:
-              </Text>{' '}
-              12/04/22
-            </Text>
-            <View style={{paddingVertical: 8}} />
-            <TouchableOpacity>
-              <View style={styles.buttonContainer}>
-                <Text style={styles.buttonText}>Ver Archivo PDF</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={{paddingVertical: 8}} />
-      </ScrollView>
-      <Modal visible={visible} animationType="slide" transparent={false}>
-        <SafeAreaView style={styles.modalContainer}>
-          <TouchableOpacity
-            onPress={() => setVisible(false)}
-            style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Cerrar</Text>
-          </TouchableOpacity>
-
-          <WebView
-            source={{uri: googleViewerUrl}}
-            style={styles.webview}
-            javaScriptEnabled
-            domStorageEnabled
-            startInLoadingState
-          />
-        </SafeAreaView>
-      </Modal>
+            {!timer && (
+              <WebView
+                ref={webviewRef}
+                source={{uri: modalUrl}}
+                onLoadEnd={handleLoadEnd}
+                onMessage={handleMessage}
+                javaScriptEnabled
+                domStorageEnabled
+                startInLoadingState
+                style={styles.webview}
+              />
+            )}
+          </SafeAreaView>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -198,12 +227,14 @@ const styles = StyleSheet.create({
     height: '100%',
     display: 'flex',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#ffffff90',
   },
-
-  containerSections: {
+  containerIcon: {
     width: '100%',
+  },
+  containerSections: {
+    width: Dimensions.get('screen').width - 25,
     marginBottom: 16,
   },
   title: {
@@ -220,6 +251,9 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 8,
     paddingTop: 16,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   inputText: {
     width: '100%',
@@ -278,6 +312,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'white',
+    paddingTop: Platform.OS === 'android' ? 0 : 44, // iOS notch height aproximado
   },
   closeButton: {
     backgroundColor: '#e74c3c',
@@ -292,7 +327,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   webview: {
-    flex: 1,
     width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
+  textNoHaySeparatas: {
+    fontWeight: '700',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

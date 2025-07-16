@@ -6,18 +6,65 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import logo from '../../images/erreparlogo.png';
-import {useAuth} from '../../context/AuthContext';
+import {AuthData, useAuth} from '../../context/AuthContext';
+import BASE_URL from '../../utils/url';
 
 const Login = ({navigation}): JSX.Element => {
-  const {setIsAuthenticated} = useAuth();
+  const {onSetAuthDataHandler} = useAuth();
+  const [mail, setMail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Validar usuario, etc.
-    setIsAuthenticated(true);
+  const handleLogin = async () => {
+    if (loading) return;
+    if (!mail || !password) {
+      Alert.alert(
+        'Ocurrió un error',
+        'Por favor completa todos los campos obligatorios',
+      );
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/User/Login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: mail,
+          password: password,
+        }),
+      });
+      const json = await response.json();
+      console.log(json);
+      setLoading(false);
+      if (json === 'Email o contraseña incorrecto') {
+        Alert.alert('Ocurrió un error', 'Email o contraseña incorrecto');
+        return;
+      }
+      if (json?.token) {
+        const userLoginData: AuthData = {
+          token: json?.token,
+          user: {
+            mail: json?.user?.mail,
+            id: json?.user?.id,
+          },
+        };
+        onSetAuthDataHandler(userLoginData);
+        return;
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
   };
+
   return (
     <View style={styles.screenContainer}>
       <View style={styles.containerForm}>
@@ -27,25 +74,44 @@ const Login = ({navigation}): JSX.Element => {
           <Text style={styles.subtitle}>Ingresá tu email y contraseña</Text>
         </View>
         <View style={styles.containerSections}>
-          <Text style={styles.label}>Mail</Text>
-          <TextInput style={styles.inputText} placeholder="Escribe tu mail" />
-          <View style={{paddingVertical: 8}} />
-          <Text style={styles.label}>Contraseña</Text>
+          <Text style={styles.label}>
+            Mail <Text style={{color: 'red'}}>*</Text>
+          </Text>
           <TextInput
+            value={mail}
+            onChange={e => setMail(e.nativeEvent.text)}
+            style={styles.inputText}
+            placeholder="Escribe tu mail"
+          />
+          <View style={{paddingVertical: 8}} />
+          <Text style={styles.label}>
+            Contraseña <Text style={{color: 'red'}}>*</Text>
+          </Text>
+          <TextInput
+            value={password}
+            onChange={e => setPassword(e.nativeEvent.text)}
             style={styles.inputText}
             placeholder="Escribe tu contraseña"
           />
         </View>
-        <View style={styles.containerSections}>
-          <Text style={styles.forgotPass}>¿Olvidó su contraseña?</Text>
-        </View>
-        <View style={{width: '100%'}}>
-          <TouchableOpacity onPress={handleLogin}>
-            <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('ResetPassword')}>
+          <View style={styles.containerSections}>
+            <Text style={styles.forgotPass}>¿Olvidó su contraseña?</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLogin} activeOpacity={0.8}>
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size={25} color={'#ffffff'} />
+            ) : (
               <Text style={styles.buttonText}>Entrar</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+            )}
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
           <View style={styles.containerSections}>
             <Text style={styles.signUp}>
@@ -112,7 +178,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     backgroundColor: '#00a88f',
-    width: '100%',
+    width: 300,
     height: 44,
     display: 'flex',
     justifyContent: 'center',

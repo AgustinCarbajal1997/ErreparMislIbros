@@ -8,10 +8,10 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useAuth} from '../../context/AuthContext';
 
 export default function CustomDrawerContent(props) {
-  const {setIsAuthenticated} = useAuth();
+  const {onClouseSession} = useAuth();
 
   const handleLogout = () => {
-    setIsAuthenticated(false); // ⬅️ Volvés al AuthStack
+    onClouseSession(); // ⬅️ Volvés al AuthStack
   };
   return (
     <DrawerContentScrollView {...props}>

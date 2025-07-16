@@ -6,10 +6,56 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
+import BASE_URL from '../../utils/url';
+import {useAuth} from '../../context/AuthContext';
+import PublicacionCard from '../../components/PublicacionCard';
+import {useFocusEffect} from '@react-navigation/native';
 
 const Publicaciones = ({navigation}): JSX.Element => {
+  const {authData} = useAuth();
+  const [publicaciones, setPublicaciones] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  const filteredPublicaciones = publicaciones.filter(item =>
+    item.title?.toLowerCase().includes(searchText.toLowerCase()),
+  );
+  const getPublicaciones = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${BASE_URL}/Book/getBooks?userid=${authData?.user?.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authData?.token,
+          },
+        },
+      );
+      const data = await response.json();
+      setPublicaciones(data);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+  useFocusEffect(
+    useCallback(() => {
+      getPublicaciones();
+      console.log('Pantalla se enfoca');
+      return () => {
+        console.log('Pantalla se desenfoca');
+        // Cleanup si necesitás
+      };
+    }, []),
+  );
+
   return (
     <View style={styles.screenContainer}>
       <View style={styles.containerScreen}>
@@ -20,25 +66,31 @@ const Publicaciones = ({navigation}): JSX.Element => {
           <TextInput
             style={styles.inputText}
             placeholder="Buscar por publicación"
+            value={searchText}
+            onChangeText={text => setSearchText(text)}
           />
         </View>
-
-        <View style={styles.cardContainer}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('DetallePublicacion')}>
-            <View style={styles.cardView}>
-              <Image
-                source={{
-                  uri: 'https://tiendaonline.errepar.com/3121-large_default/guia-practica-para-el-liquidador-de-sueldos.jpg',
-                }}
-                style={styles.image}
-              />
-              <Text style={styles.textCard}>
-                Guía práctica para el liquidador de sueldos
+        {loading ? (
+          <ActivityIndicator size={25} color={'#00a88f'} />
+        ) : (
+          <FlatList
+            removeClippedSubviews={false}
+            data={filteredPublicaciones}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({item}) => (
+              <PublicacionCard publicacion={item} navigation={navigation} />
+            )}
+            ItemSeparatorComponent={() => <View style={{height: 16}} />}
+            contentContainerStyle={{
+              paddingBottom: 100, // ajustá el valor a tu necesidad
+            }}
+            ListEmptyComponent={
+              <Text style={{textAlign: 'center', marginTop: 20, color: '#888'}}>
+                No hay publicaciones
               </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+            }
+          />
+        )}
       </View>
     </View>
   );

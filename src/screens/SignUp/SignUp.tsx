@@ -6,11 +6,83 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import logo from '../../images/erreparlogo.png';
+import {AuthData, useAuth} from '../../context/AuthContext';
+import BASE_URL from '../../utils/url';
 
 const SignUp = ({navigation}): JSX.Element => {
+  const {onSetAuthDataHandler} = useAuth();
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [mail, setMail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [repassword, setRepassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = async () => {
+    if (loading) return;
+    if (!mail || !password || !name || !surname || !repassword || !phone) {
+      Alert.alert(
+        'Ocurrió un error',
+        'Por favor completa todos los campos obligatorios',
+      );
+      return;
+    }
+    if (password !== repassword) {
+      Alert.alert(
+        'Ocurrió un error',
+        'La confirmación de contraseña no es igual a la contraseña',
+      );
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/User/Register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: mail,
+          password: password,
+          nombre: name,
+          apellido: surname,
+          telefono: phone,
+          repassword: repassword,
+        }),
+      });
+      const json = await response.json();
+      setLoading(false);
+      console.log(json);
+      if (json === 'El mail ingresado ya esta en uso. Ingrese otro por favor') {
+        Alert.alert(
+          'Ocurrió un error',
+          'El mail ingresado ya está en uso. Ingrese otro por favor',
+        );
+        return;
+      }
+      if (json?.token) {
+        const userLoginData: AuthData = {
+          token: json?.token,
+          user: {
+            mail: json?.user?.mail,
+            id: json?.user?.id,
+          },
+        };
+        onSetAuthDataHandler(userLoginData);
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.screenContainer}>
       <View style={styles.containerForm}>
@@ -19,36 +91,80 @@ const SignUp = ({navigation}): JSX.Element => {
           <Text style={styles.title}>Crear cuenta</Text>
         </View>
         <View style={styles.containerSections}>
-          <Text style={styles.label}>Ingresá tu nombre completo</Text>
+          <Text style={styles.label}>
+            Ingresá tu nombre completo <Text style={{color: 'red'}}>*</Text>
+          </Text>
           <View
             style={{
               display: 'flex',
               flexDirection: 'row',
               justifyContent: 'space-between',
             }}>
-            <TextInput style={styles.inputTextSplit} placeholder="Nombre" />
+            <TextInput
+              style={styles.inputTextSplit}
+              placeholder="Nombre"
+              value={name}
+              onChange={e => setName(e.nativeEvent.text)}
+            />
 
-            <TextInput style={styles.inputTextSplit} placeholder="Apellido" />
+            <TextInput
+              style={styles.inputTextSplit}
+              placeholder="Apellido"
+              value={surname}
+              onChange={e => setSurname(e.nativeEvent.text)}
+            />
           </View>
           <View style={{paddingVertical: 8}} />
-          <Text style={styles.label}>Ingresá tu nº de teléfono</Text>
-          <TextInput style={styles.inputText} placeholder="+5491112345678" />
+          <Text style={styles.label}>
+            Ingresá tu nº de teléfono <Text style={{color: 'red'}}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.inputText}
+            placeholder="+5491112345678"
+            value={phone}
+            onChange={e => setPhone(e.nativeEvent.text)}
+          />
           <View style={{paddingVertical: 8}} />
-          <Text style={styles.label}>Ingresá tu mail</Text>
-          <TextInput style={styles.inputText} placeholder="Escribe tu mail" />
+          <Text style={styles.label}>
+            Ingresá tu mail <Text style={{color: 'red'}}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.inputText}
+            placeholder="Escribe tu mail"
+            value={mail}
+            onChange={e => setMail(e.nativeEvent.text)}
+          />
           <View style={{paddingVertical: 8}} />
-          <Text style={styles.label}>Contraseña</Text>
-          <TextInput style={styles.inputText} placeholder="********" />
+          <Text style={styles.label}>
+            Contraseña <Text style={{color: 'red'}}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.inputText}
+            placeholder="********"
+            value={password}
+            onChange={e => setPassword(e.nativeEvent.text)}
+          />
           <View style={{paddingVertical: 8}} />
-          <Text style={styles.label}>Confirmá contraseña</Text>
-          <TextInput style={styles.inputText} placeholder="********" />
+          <Text style={styles.label}>
+            Confirmá contraseña <Text style={{color: 'red'}}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.inputText}
+            placeholder="********"
+            value={repassword}
+            onChange={e => setRepassword(e.nativeEvent.text)}
+          />
         </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity>
-            <Text style={styles.buttonText}>Crear cuenta</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity activeOpacity={0.8} onPress={handleSignUp}>
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size={25} color={'#ffffff'} />
+            ) : (
+              <Text style={styles.buttonText}>Crear cuenta</Text>
+            )}
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <View style={styles.containerSections}>
             <Text style={styles.signUp}>
@@ -123,7 +239,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     backgroundColor: '#00a88f',
-    width: '100%',
+    width: 300,
     height: 44,
     display: 'flex',
     justifyContent: 'center',

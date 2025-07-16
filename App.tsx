@@ -6,7 +6,7 @@ import {AuthProvider, useAuth} from './src/context/AuthContext';
 import BootSplash from 'react-native-bootsplash';
 
 const AppNavigator = () => {
-  const {isAuthenticated} = useAuth();
+  const {authData} = useAuth();
   useEffect(() => {
     const init = async () => {
       // …do multiple sync or async tasks
@@ -19,7 +19,7 @@ const AppNavigator = () => {
   }, []);
   return (
     <NavigationContainer>
-      {isAuthenticated ? <DrawerNavigation /> : <AuthStack />}
+      {authData !== null ? <DrawerNavigation /> : <AuthStack />}
     </NavigationContainer>
   );
 };

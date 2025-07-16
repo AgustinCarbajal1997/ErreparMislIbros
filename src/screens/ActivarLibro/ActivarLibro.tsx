@@ -7,12 +7,53 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import dondecomo from '../../images/codigo_donde.jpg';
 import ebook from '../../images/codigo_activacion_ebook.png';
+import {useAuth} from '../../context/AuthContext';
+import BASE_URL from '../../utils/url';
 
 const ActivarLibro = ({}): JSX.Element => {
+  const {authData} = useAuth();
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleActiveCode = async () => {
+    if (!code) return;
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${BASE_URL}/Book/ActiveBook?codeBook=${code}&userid=${authData?.user?.id}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authData?.token,
+          },
+        },
+      );
+      const data = await response.json();
+
+      if (data?.success === true) {
+        Alert.alert('Solicitud exitosa', 'Libro activado correctamente');
+      }
+      if (data === 'El usuario ya tiene el libro activo') {
+        Alert.alert('Ocurrió un error', 'El usuario ya tiene el libro activo.');
+      }
+      if (data === 'No existe Libro') {
+        Alert.alert('Ocurrió un error', 'No existe Libro.');
+      }
+      setLoading(false);
+      setCode('');
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
   return (
     <View style={styles.screenContainer}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -48,14 +89,20 @@ const ActivarLibro = ({}): JSX.Element => {
             <View style={{paddingVertical: 4}} />
             <TextInput
               style={styles.inputText}
+              value={code}
+              onChange={e => setCode(e.nativeEvent.text)}
               placeholder="Ingresá el código del libro"
             />
             <View style={{paddingVertical: 8}} />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity>
-                <Text style={styles.buttonText}>Activar Libro</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={handleActiveCode} activeOpacity={0.8}>
+              <View style={styles.buttonContainer}>
+                {loading ? (
+                  <ActivityIndicator size={25} color={'#ffffff'} />
+                ) : (
+                  <Text style={styles.buttonText}>Activar Libro</Text>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         <View style={{paddingVertical: 8}} />
