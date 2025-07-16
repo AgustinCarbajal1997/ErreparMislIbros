@@ -28,6 +28,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import RNFS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
+import Share from 'react-native-share';
 
 const DetallePublicacion = ({navigation}): JSX.Element => {
   const {authData} = useAuth();
@@ -249,6 +250,55 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
     }
   };
 
+  const downloadAndShare = async item => {
+    const shareData = generatePreviewUrl(item);
+    const url = shareData?.DownloadURL;
+    const fileName = shareData?.fileName;
+    try {
+      // PASO 1: Definir ruta temporal
+      const tempPath =
+        Platform.OS === 'ios'
+          ? `${RNFS.TemporaryDirectoryPath}${fileName}`
+          : `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+      console.log('Archivo temporal:', tempPath);
+
+      // PASO 2: Descargar archivo
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: url,
+        toFile: tempPath,
+      }).promise;
+
+      if (downloadResult.statusCode === 200) {
+        console.log('Archivo descargado en:', tempPath);
+
+        // PASO 3: Compartir archivo
+        const shareOptions = {
+          title: 'Compartir archivo PDF',
+          url: Platform.OS === 'android' ? `file://${tempPath}` : tempPath,
+          type: 'application/pdf',
+        };
+
+        await Share.open(shareOptions);
+        console.log('Archivo compartido.');
+
+        // PASO 4: Borrar archivo después de compartir
+        await RNFS.unlink(tempPath);
+        console.log('Archivo temporal eliminado.');
+
+        Alert.alert('Éxito', 'Archivo compartido y eliminado.');
+      } else {
+        console.log('Error en la descarga:', downloadResult.statusCode);
+        Alert.alert('Error', 'No se pudo descargar el archivo.');
+      }
+    } catch (error) {
+      //Alert.alert(
+      //  'Error',
+      //  'Ocurrió un error al descargar o compartir el archivo.',
+      //);
+    }
+  };
+
   return (
     <View style={styles.screenContainer}>
       <View style={styles.containerIcon}>
@@ -300,6 +350,7 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
                       separata={item}
                       navigation={navigation}
                       onOpenModalUrl={() => onOpenModalUrl(item)}
+                      onSharedDoc={() => downloadAndShare(item)}
                     />
                     <View style={{height: 16}} />
                   </Fragment>

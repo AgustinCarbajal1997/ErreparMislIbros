@@ -12,7 +12,7 @@ import {
 import formatDate from '../utils/formatDate';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-function SeparataCard({separata, navigation, onOpenModalUrl}) {
+function SeparataCard({separata, navigation, onOpenModalUrl, onSharedDoc}) {
   const getText = () => {
     if (separata?.fileUrl?.includes('.pdf')) return 'Ver Archivo PDF';
     if (separata?.fileUrl?.includes('.xlsm')) return 'Descargar Archivo';
@@ -62,7 +62,7 @@ function SeparataCard({separata, navigation, onOpenModalUrl}) {
             </Text>{' '}
             {formatDate(separata?.fecha)}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={onSharedDoc}>
             <View>
               <Ionicons name="share-social" size={26} color="#00a88f" />
             </View>
