@@ -14,6 +14,7 @@ import {
   Linking,
   Platform,
   StatusBar,
+  Alert,
 } from 'react-native';
 import React, {Fragment, useEffect, useRef, useState} from 'react';
 import WebView from 'react-native-webview';
@@ -24,6 +25,9 @@ import SeparataCard from '../../components/SeparataCard';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {generatePreviewUrl} from '../../utils/generateUrl';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import RNFS from 'react-native-fs';
+import {PermissionsAndroid} from 'react-native';
+import RNBlobUtil from 'react-native-blob-util';
 
 const DetallePublicacion = ({navigation}): JSX.Element => {
   const {authData} = useAuth();
@@ -106,17 +110,137 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
   const navigationGoBack = () => {
     navigation.goBack();
   };
+  const downloadPdf2 = async () => {
+    const url = 'https://example.com/archivo.pdf';
+    const fileName = 'archivo.pdf';
+    const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
+    try {
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: url,
+        toFile: destPath,
+      }).promise;
+
+      if (downloadResult.statusCode === 200) {
+        console.log('PDF descargado en:', destPath);
+        // Aquí puedes abrirlo con algún visor de PDFs
+      } else {
+        console.log('Error en la descarga:', downloadResult.statusCode);
+      }
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+    }
+  };
+  const downloadDocumentIos = async (downloadData, item) => {
+    const url = downloadData?.DownloadURL;
+    const fileName = downloadData?.fileName;
+    try {
+      const path = `${RNBlobUtil.fs.dirs.DocumentDir}/${fileName}`;
+
+      const res = await RNBlobUtil.config({
+        path: path,
+        fileCache: true,
+      }).fetch('GET', url);
+
+      console.log('Archivo descargado en:', res.path());
+      Alert.alert('Éxito', 'Archivo descargado correctamente.');
+
+      // Aquí podrías abrirlo con react-native-file-viewer, por ejemplo
+      // FileViewer.open(res.path())
+    } catch (error) {
+      console.error('Error al descargar:', error);
+      Alert.alert('Error', 'Ocurrió un error al descargar el archivo.');
+    }
+  };
+
+  const downloadDocumentAndroid = async (downloadData, item) => {
+    const url = downloadData?.DownloadURL;
+    const fileName = downloadData?.fileName;
+    let description;
+    let mimeType;
+    if (item?.fileUrl?.includes('.pdf')) {
+      description = 'Descargando archivo PDF';
+      mimeType = 'application/pdf';
+    }
+    if (item?.fileUrl?.includes('.xlsm')) {
+      description = 'Descargando archivo Excel';
+      mimeType = 'application/vnd.ms-excel.sheet.macroEnabled.12';
+    }
+    if (item?.fileUrl?.includes('.doc')) {
+      description = 'Descargando archivo DOC';
+      mimeType = 'application/msword';
+    }
+
+    try {
+      // PASO 1: pedir permisos en Android
+      //if (Platform.OS === 'android') {
+      //  const granted = await PermissionsAndroid.request(
+      //    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      //    {
+      //      title: 'Permiso de almacenamiento',
+      //      message:
+      //        'La app necesita acceso para guardar archivos en tu dispositivo.',
+      //      buttonNeutral: 'Preguntar después',
+      //      buttonNegative: 'Cancelar',
+      //      buttonPositive: 'Aceptar',
+      //    },
+      //  );
+      //
+      //  if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      //    Alert.alert(
+      //      'Permiso denegado',
+      //      'No se puede descargar el archivo sin permisos.',
+      //    );
+      //    return;
+      //  }
+      //}
+
+      // PASO 2: iniciar la descarga
+      const {dirs} = RNBlobUtil.fs;
+      const downloadPath = `${dirs.DownloadDir}/${fileName}`;
+
+      const res = await RNBlobUtil.config({
+        addAndroidDownloads: {
+          useDownloadManager: true, // ← activa DownloadManager
+          notification: true, // ← muestra la notificación nativa
+          title: fileName,
+          path: downloadPath,
+          description: description,
+          mime: mimeType,
+          mediaScannable: true,
+        },
+      }).fetch('GET', url);
+
+      console.log('Archivo descargado en:', res.path());
+      Alert.alert('Éxito', 'Archivo descargado correctamente.');
+    } catch (error) {
+      console.error('Error al descargar:', error);
+      Alert.alert('Error', 'Ocurrió un error al descargar el archivo.');
+    }
+  };
   const onOpenModalUrl = item => {
     if (item?.fileUrl?.includes('.pdf')) {
       const fileData = generatePreviewUrl(item);
-
+      console.log('fileData', fileData);
       setModalUrl(fileData?.URL);
+      if (Platform.OS === 'android') {
+        downloadDocumentAndroid(fileData, item);
+      } else {
+        downloadDocumentIos(fileData, item);
+      }
+
       setVisible(true);
       return;
     }
     if (item?.fileUrl?.includes('.xlsm') || item?.fileUrl?.includes('.doc')) {
-      console.log('debe descargar');
+      const downloadData = generatePreviewUrl(item);
+      console.log('downloadData', downloadData);
+      if (Platform.OS === 'android') {
+        downloadDocumentAndroid(downloadData, item);
+      } else {
+        downloadDocumentIos(downloadData, item);
+      }
+      Linking.openURL(downloadData?.DownloadURL);
       return;
     }
     if (item?.videoUrl !== null) {

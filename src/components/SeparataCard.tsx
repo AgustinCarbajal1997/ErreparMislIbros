@@ -1,3 +1,4 @@
+/* eslint-disable curly */
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {
@@ -9,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import formatDate from '../utils/formatDate';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 function SeparataCard({separata, navigation, onOpenModalUrl}) {
   const getText = () => {
@@ -44,21 +46,29 @@ function SeparataCard({separata, navigation, onOpenModalUrl}) {
         }}
       />
       <View>
-        <Text
-          style={{
-            fontSize: 15,
-            color: '#000000',
-          }}>
+        <View style={styles.containerShare}>
           <Text
             style={{
               fontSize: 15,
               color: '#000000',
-              fontWeight: '500',
             }}>
-            Fecha:
-          </Text>{' '}
-          {formatDate(separata?.fecha)}
-        </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                color: '#000000',
+                fontWeight: '500',
+              }}>
+              Fecha:
+            </Text>{' '}
+            {formatDate(separata?.fecha)}
+          </Text>
+          <TouchableOpacity>
+            <View>
+              <Ionicons name="share-social" size={26} color="#00a88f" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <View style={{paddingVertical: 8}} />
         <TouchableOpacity onPress={onOpenModalUrl}>
           <View style={styles.buttonContainer}>
@@ -75,7 +85,7 @@ export default SeparataCard;
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: '#fff',
-    width: '100%',
+    width: Dimensions.get('window').width - 25,
     display: 'flex',
     justifyContent: 'center',
     borderRadius: 10,
@@ -117,5 +127,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
     fontSize: 16,
+  },
+  containerShare: {
+    width: 300,
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 20,
   },
 });
