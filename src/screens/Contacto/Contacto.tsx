@@ -1,5 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import React from 'react';
 import Zocial from 'react-native-vector-icons/Zocial';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -55,18 +62,36 @@ const Contacto = ({}): JSX.Element => {
       <View style={styles.containerContact}>
         <Text style={styles.subtitle}>También encontranos en:</Text>
         <View style={styles.containerContactRedes}>
-          <View>
-            <Zocial name="facebook" size={25} />
-          </View>
-          <View>
-            <Zocial name="twitter" size={25} />
-          </View>
-          <View>
-            <Zocial name="linkedin" size={25} />
-          </View>
-          <View>
-            <Ionicons name="logo-instagram" size={25} />
-          </View>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://www.facebook.com/Errepar')}>
+            <View>
+              <Zocial name="facebook" size={25} />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://twitter.com/errepar')}>
+            <View>
+              <Zocial name="twitter" size={25} />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL('https://www.linkedin.com/company/errepar')
+            }>
+            <View>
+              <Zocial name="linkedin" size={25} />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL('http://instagram.com/errepar_editorial')
+            }>
+            <View>
+              <Ionicons name="logo-instagram" size={25} />
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

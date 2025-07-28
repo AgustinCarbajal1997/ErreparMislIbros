@@ -6,13 +6,65 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DescargaContenido = ({}): JSX.Element => {
   const [isEnabled, setIsEnabled] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState(null);
 
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const toggleSwitch = () => {
+    if (!isEnabled) {
+      saveDownloadStatus('activado');
+    } else {
+      saveDownloadStatus('desactivado');
+    }
+  };
+
+  // Guardar un valor en AsyncStorage
+  const saveDownloadStatus = async value => {
+    try {
+      await AsyncStorage.setItem('download', value);
+      if (value === 'activado') {
+        setDownloadStatus(value);
+        setIsEnabled(true);
+      } else {
+        setDownloadStatus(value);
+        setIsEnabled(false);
+      }
+      Alert.alert('Guardado', `Se guardó el valor: ${value}`);
+    } catch (e) {
+      console.error('Error al guardar:', e);
+    }
+  };
+
+  // Leer el valor desde AsyncStorage
+  const loadDownloadStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem('download');
+      if (value !== null) {
+        console.log('Valor leído:', value);
+        if (value === 'activado') {
+          setDownloadStatus(value);
+          setIsEnabled(true);
+        } else {
+          setDownloadStatus(value);
+          setIsEnabled(false);
+        }
+      } else {
+        console.log('No hay valor guardado aún.');
+      }
+    } catch (e) {
+      console.error('Error al leer:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadDownloadStatus();
+  }, []);
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView showsVerticalScrollIndicator={false}>

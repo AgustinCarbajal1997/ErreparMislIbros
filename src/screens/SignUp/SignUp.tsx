@@ -143,6 +143,7 @@ const SignUp = ({navigation}): JSX.Element => {
             placeholder="********"
             value={password}
             onChange={e => setPassword(e.nativeEvent.text)}
+            secureTextEntry
           />
           <View style={{paddingVertical: 8}} />
           <Text style={styles.label}>

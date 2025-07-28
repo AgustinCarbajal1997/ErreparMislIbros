@@ -92,6 +92,7 @@ const Login = ({navigation}): JSX.Element => {
             onChange={e => setPassword(e.nativeEvent.text)}
             style={styles.inputText}
             placeholder="Escribe tu contraseña"
+            secureTextEntry
           />
         </View>
         <TouchableOpacity

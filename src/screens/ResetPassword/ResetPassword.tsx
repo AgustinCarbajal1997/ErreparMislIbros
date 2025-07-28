@@ -155,6 +155,7 @@ const ResetPassword = ({navigation}): JSX.Element => {
               onChange={e => setPassword(e.nativeEvent.text)}
               style={styles.inputText}
               placeholder="Escribe tu contraseña"
+              secureTextEntry
             />
             <View style={{paddingVertical: 8}} />
             <Text style={styles.label}>
@@ -165,6 +166,7 @@ const ResetPassword = ({navigation}): JSX.Element => {
               onChange={e => setrePassword(e.nativeEvent.text)}
               style={styles.inputText}
               placeholder="Repite tu contraseña"
+              secureTextEntry
             />
             <TouchableOpacity onPress={() => setCodigo(false)}>
               <View style={[styles.containerSections, {paddingTop: 10}]}>

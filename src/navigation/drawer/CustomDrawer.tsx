@@ -1,10 +1,9 @@
 import React from 'react';
-import {View, Image, StyleSheet, Text} from 'react-native';
+import {View, Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
-import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useAuth} from '../../context/AuthContext';
 
 export default function CustomDrawerContent(props) {

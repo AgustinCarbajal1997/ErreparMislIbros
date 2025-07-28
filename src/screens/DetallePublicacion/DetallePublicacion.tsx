@@ -16,7 +16,7 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
-import React, {Fragment, useEffect, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react';
 import WebView from 'react-native-webview';
 import {useRoute} from '@react-navigation/native';
 import BASE_URL from '../../utils/url';
@@ -29,6 +29,8 @@ import RNFS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import Share from 'react-native-share';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
 
 const DetallePublicacion = ({navigation}): JSX.Element => {
   const {authData} = useAuth();
@@ -46,6 +48,7 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
   const [searchText, setSearchText] = useState('');
   const webviewRef = useRef(null);
   const [timer, setTimer] = useState(false);
+  const [hasDownload, setHasDownload] = useState(false);
 
   const handleLoadEnd = () => {
     webviewRef.current.injectJavaScript(`
@@ -222,26 +225,29 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
   const onOpenModalUrl = item => {
     if (item?.fileUrl?.includes('.pdf')) {
       const fileData = generatePreviewUrl(item);
-      console.log('fileData', fileData);
-      setModalUrl(fileData?.URL);
-      if (Platform.OS === 'android') {
-        downloadDocumentAndroid(fileData, item);
-      } else {
-        downloadDocumentIos(fileData, item);
-      }
 
+      setModalUrl(fileData?.URL);
+      if (hasDownload) {
+        if (Platform.OS === 'android') {
+          downloadDocumentAndroid(fileData, item);
+        } else {
+          downloadDocumentIos(fileData, item);
+        }
+      }
       setVisible(true);
       return;
     }
     if (item?.fileUrl?.includes('.xlsm') || item?.fileUrl?.includes('.doc')) {
       const downloadData = generatePreviewUrl(item);
-      console.log('downloadData', downloadData);
-      if (Platform.OS === 'android') {
-        downloadDocumentAndroid(downloadData, item);
-      } else {
-        downloadDocumentIos(downloadData, item);
+      if (hasDownload) {
+        if (Platform.OS === 'android') {
+          downloadDocumentAndroid(downloadData, item);
+        } else {
+          downloadDocumentIos(downloadData, item);
+        }
+        Linking.openURL(downloadData?.DownloadURL);
       }
-      Linking.openURL(downloadData?.DownloadURL);
+
       return;
     }
     if (item?.videoUrl !== null) {
@@ -298,6 +304,28 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
       //);
     }
   };
+
+  const hasToDownload = async () => {
+    try {
+      const value = await AsyncStorage.getItem('download');
+      if (value !== null) {
+        if (value === 'activado') {
+          setHasDownload(true);
+        } else {
+          setHasDownload(false);
+        }
+      } else {
+        setHasDownload(false);
+      }
+    } catch (e) {
+      setHasDownload(false);
+    }
+  };
+  useFocusEffect(
+    useCallback(() => {
+      hasToDownload();
+    }, []),
+  );
 
   return (
     <View style={styles.screenContainer}>
