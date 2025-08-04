@@ -24,13 +24,7 @@ interface AuthContextType {
   onSetAuthDataHandler: (authData: AuthData) => void;
   onClouseSession: () => void;
 }
-// ejemplo vencido: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im1hZ3VzdGluY2FyYmFqYWw5N0BnbWFpbC5jb20iLCJuYmYiOjE3NTI2ODY0MTAsImV4cCI6MTc1MjY5MjQxMCwiaWF0IjoxNzUyNjg2NDEwLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo0NDM0OC8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0NDM0OC8ifQ.SI6cj2Tw6G-qrn0HiJRBU6GWA_dNPPXsA92k6Xpw_s4
-const ejemploToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im1hZ3VzdGluY2FyYmFqYWw5N0BnbWFpbC5jb20iLCJuYmYiOjE3NTM0NjQ0NjQsImV4cCI6MTc1MzQ3MDQ2NCwiaWF0IjoxNzUzNDY0NDY0LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo0NDM0OC8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0NDM0OC8ifQ.KBl3LS-0iNqnHXCvny4wi54qRmY0i3gz8AJs8txVfKQ';
-const ejemploUser: User = {
-  mail: 'Magustincarbajal97@gmail.com',
-  id: 10688,
-};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({children}: {children: ReactNode}) => {

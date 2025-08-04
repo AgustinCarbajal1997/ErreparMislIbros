@@ -48,6 +48,10 @@ const Login = ({navigation}): JSX.Element => {
         Alert.alert('Ocurrió un error', 'Email o contraseña incorrecto');
         return;
       }
+      if (json === 'El usuario está deshabilitado') {
+        Alert.alert('Ocurrió un error', 'El usuario está deshabilitado');
+        return;
+      }
       if (json?.token) {
         const userLoginData: AuthData = {
           token: json?.token,
@@ -82,6 +86,7 @@ const Login = ({navigation}): JSX.Element => {
             onChange={e => setMail(e.nativeEvent.text)}
             style={styles.inputText}
             placeholder="Escribe tu mail"
+            keyboardType="email-address"
           />
           <View style={{paddingVertical: 8}} />
           <Text style={styles.label}>

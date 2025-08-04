@@ -34,7 +34,6 @@ const DescargaContenido = ({}): JSX.Element => {
         setDownloadStatus(value);
         setIsEnabled(false);
       }
-      Alert.alert('Guardado', `Se guardó el valor: ${value}`);
     } catch (e) {
       console.error('Error al guardar:', e);
     }

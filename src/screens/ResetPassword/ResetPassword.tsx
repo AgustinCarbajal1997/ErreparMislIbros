@@ -135,6 +135,7 @@ const ResetPassword = ({navigation}): JSX.Element => {
               onChange={e => setMail(e.nativeEvent.text)}
               style={styles.inputText}
               placeholder="Escribe tu mail"
+              keyboardType="email-address"
             />
             <View style={{paddingVertical: 8}} />
             <Text style={styles.label}>

@@ -131,6 +131,7 @@ const SignUp = ({navigation}): JSX.Element => {
           <TextInput
             style={styles.inputText}
             placeholder="Escribe tu mail"
+            keyboardType="email-address"
             value={mail}
             onChange={e => setMail(e.nativeEvent.text)}
           />
