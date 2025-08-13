@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  Image,
 } from 'react-native';
 import React from 'react';
 import Zocial from 'react-native-vector-icons/Zocial';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 const Contacto = ({}): JSX.Element => {
   return (
     <View style={styles.screenContainer}>
@@ -70,8 +70,11 @@ const Contacto = ({}): JSX.Element => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => Linking.openURL('https://twitter.com/errepar')}>
-            <View>
-              <Zocial name="twitter" size={25} />
+            <View style={styles.logoContainer}>
+              <Image
+                source={require('../../images/x.png')} // ← colocá tu logo aquí
+                style={styles.logo}
+              />
             </View>
           </TouchableOpacity>
 
@@ -86,7 +89,7 @@ const Contacto = ({}): JSX.Element => {
 
           <TouchableOpacity
             onPress={() =>
-              Linking.openURL('http://instagram.com/errepar_editorial')
+              Linking.openURL('https://www.instagram.com/errepar_oficial')
             }>
             <View>
               <Ionicons name="logo-instagram" size={25} />
@@ -146,5 +149,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-evenly',
     flexDirection: 'row',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  logo: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
   },
 });

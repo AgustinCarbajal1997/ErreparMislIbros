@@ -166,7 +166,7 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
       description = 'Descargando archivo PDF';
       mimeType = 'application/pdf';
     }
-    if (item?.fileUrl?.includes('.xlsm')) {
+    if (item?.fileUrl?.includes('.xls')) {
       description = 'Descargando archivo Excel';
       mimeType = 'application/vnd.ms-excel.sheet.macroEnabled.12';
     }
@@ -223,30 +223,56 @@ const DetallePublicacion = ({navigation}): JSX.Element => {
     }
   };
   const onOpenModalUrl = item => {
+    // si es pdf
     if (item?.fileUrl?.includes('.pdf')) {
       const fileData = generatePreviewUrl(item);
 
-      setModalUrl(fileData?.URL);
+      if (Platform.OS === 'android') {
+        setModalUrl(fileData?.URL);
+        setVisible(true);
+      } else {
+        Linking.openURL(fileData?.DownloadURL);
+      }
+
       if (hasDownload) {
         if (Platform.OS === 'android') {
           downloadDocumentAndroid(fileData, item);
         } else {
-          downloadDocumentIos(fileData, item);
+          //downloadDocumentIos(fileData, item);
         }
       }
-      setVisible(true);
-      return;
     }
-    if (item?.fileUrl?.includes('.xlsm') || item?.fileUrl?.includes('.doc')) {
+    // si es doc
+    if (item?.fileUrl?.includes('.doc')) {
       const downloadData = generatePreviewUrl(item);
-      if (hasDownload) {
-        if (Platform.OS === 'android') {
-          downloadDocumentAndroid(downloadData, item);
-        } else {
-          downloadDocumentIos(downloadData, item);
-        }
+      //if (hasDownload) {
+      //  if (Platform.OS === 'android') {
+      //    downloadDocumentAndroid(downloadData, item);
+      //  } else {
+      //    downloadDocumentIos(downloadData, item);
+      //  }
+      //}
+      if (Platform.OS === 'android') {
+        setModalUrl(downloadData?.URL);
+        setVisible(true);
+      } else {
         Linking.openURL(downloadData?.DownloadURL);
       }
+
+      return;
+    }
+    // si es excel
+    if (item?.fileUrl?.includes('.xls')) {
+      const downloadData = generatePreviewUrl(item);
+      //if (hasDownload) {
+      //  if (Platform.OS === 'android') {
+      //    downloadDocumentAndroid(downloadData, item);
+      //  } else {
+      //    downloadDocumentIos(downloadData, item);
+      //  }
+      //}
+
+      Linking.openURL(downloadData?.DownloadURL);
 
       return;
     }

@@ -1,13 +1,33 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import DrawerNavigation from './src/navigation/navigation';
 import AuthStack from './src/navigation/stacks/AuthStack';
 import {AuthProvider, useAuth} from './src/context/AuthContext';
 import BootSplash from 'react-native-bootsplash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AnimatedGifLoader from './src/components/AnimatedGifLoader';
+
+const ContainerNavigator = () => {
+  const {authData} = useAuth();
+  const [animatedLoader, setAnimatedLoader] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setAnimatedLoader(false);
+    }, 2000);
+  }, []);
+
+  if (animatedLoader) {
+    return <AnimatedGifLoader />;
+  }
+  return (
+    <NavigationContainer>
+      {authData !== null ? <DrawerNavigation /> : <AuthStack />}
+    </NavigationContainer>
+  );
+};
 
 const AppNavigator = () => {
-  const {authData} = useAuth();
   useEffect(() => {
     const init = async () => {
       // …do multiple sync or async tasks
@@ -34,11 +54,7 @@ const AppNavigator = () => {
     }
   };
 
-  return (
-    <NavigationContainer>
-      {authData !== null ? <DrawerNavigation /> : <AuthStack />}
-    </NavigationContainer>
-  );
+  return <ContainerNavigator />;
 };
 
 function App(): JSX.Element {

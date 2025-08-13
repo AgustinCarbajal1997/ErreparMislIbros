@@ -15,14 +15,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 function SeparataCard({separata, navigation, onOpenModalUrl, onSharedDoc}) {
   const getText = () => {
     if (separata?.fileUrl?.includes('.pdf')) return 'Ver Archivo PDF';
-    if (separata?.fileUrl?.includes('.xlsm')) return 'Descargar Archivo';
-    if (separata?.fileUrl?.includes('.doc')) return 'Descargar Archivo';
+    if (separata?.fileUrl?.includes('.xls')) return 'Descargar Archivo Excel';
+    if (separata?.fileUrl?.includes('.doc')) return 'Descargar Archivo DOC';
     if (separata?.videoUrl !== null) return 'Ver Video';
   };
 
   const getTitle = () => {
     if (separata?.fileUrl?.includes('.pdf')) return separata?.fileTitle;
-    if (separata?.fileUrl?.includes('.xlsm')) return separata?.fileTitle;
+    if (separata?.fileUrl?.includes('.xls')) return separata?.fileTitle;
     if (separata?.fileUrl?.includes('.doc')) return separata?.fileTitle;
     if (separata?.videoUrl !== null) return separata?.videoTitle;
   };
