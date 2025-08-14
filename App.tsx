@@ -6,12 +6,14 @@ import {AuthProvider, useAuth} from './src/context/AuthContext';
 import BootSplash from 'react-native-bootsplash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnimatedGifLoader from './src/components/AnimatedGifLoader';
+import DeviceInfo from 'react-native-device-info';
 
 const ContainerNavigator = () => {
   const {authData} = useAuth();
   const [animatedLoader, setAnimatedLoader] = useState(true);
 
   useEffect(() => {
+    console.log(DeviceInfo.getBundleId());
     setTimeout(() => {
       setAnimatedLoader(false);
     }, 2000);
